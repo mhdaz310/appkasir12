@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+</head>
+<body style="background-color:#f4f4f4;">
+    <script>
+        var grandTotal = 0;
+        var barang = [];
+
+        function cari_barang() {
+
+            // MENDEKLARASIKAN VARIABEL ARRAY 
+            const items = [
+                {
+                    nomorBatch: "8993560024536",
+                    namaItem: "Sabun Batangan",
+                    harga: 4000,
+                },
+                {
+                    nomorBatch: "4987176255945",
+                    namaItem: "Shampo",
+                    harga: 6500, 
+                },
+                {
+                    nomorBatch: "8997011930612",
+                    namaItem: "Bumbu Penyedap",
+                    harga: 1500,
+                },
+                {
+                    nomorBatch: "8991002105584",
+                    namaItem: "Kopi Hitam",
+                    harga: 2000,
+                },
+                {
+                    nomorBatch: "8999999049454",
+                    namaItem: "Deodoran",
+                    harga: 24000,
+                }
+
+            ];
+
+            // Melakukan pencarian produk berdasarkan nomor batch yang diketik
+            let no_batch = document.getElementById("nobatch").value;
+            const hasilPencarian = items.filter(item => 
+                item.nomorBatch.toLowerCase().includes(no_batch.toLowerCase())
+            );
+
+            // Jika hasilnya ada maka ditampilkan
+            if (hasilPencarian) {
+                console.log("Item ditemukan:", hasilPencarian);
+                document.getElementById('nama_item').value = hasilPencarian[0].namaItem;
+                document.getElementById('harga_item').value = hasilPencarian[0].harga;
+
+            } else {
+                console.log("Item tidak ditemukan.");
+            }
+        }
+
+    
+        function tambah_list()
+        {
+            let table = document.getElementById("myTable");
+            let newRow = table.insertRow(table.rows.length);
+            
+            let item = document.getElementById("nama_item").value;
+            let harga = document.getElementById("harga_item").value;
+            let jumbel = document.getElementById("jumlah_pembelian").value;
+            
+            // Melakukan Perhitungan subtotal dan grand total
+            let subtotal = harga * jumbel;
+            grandTotal += subtotal;
+            console.log("grand total " + grandTotal);
+            
+            // Masukkan kedalam list
+            barang.push(  
+                {
+                    nama: item,
+                    hargaItem: harga,
+                    jumlah: jumbel,
+                    sub: subtotal
+                }
+            );
+            barang.forEach(function(element, index) {
+                console.log("Element at index " + index + ":");
+                Object.keys(element).forEach(function(key) {
+                    console.log("  " + key + ": " + element[key]);
+                });
+            });
+
+            // Menampilkan barang yang telah ditambahkan kedalam tabel
+            newRow.insertCell(0).innerHTML = item;
+            newRow.insertCell(1).innerHTML = harga;
+            newRow.insertCell(2).innerHTML = jumbel;
+            newRow.insertCell(3).innerHTML = subtotal;
+
+            var total = Intl.NumberFormat("id-ID", {
+                style: "currency",
+                currency: "IDR"
+            }).format(grandTotal);
+
+            document.getElementById("total_pembelian").innerHTML = total;
+        }
+
+        function print_faktur()
+        {
+            var membayar = document.getElementById("membayar").value;
+            
+            // Mendapatkan Tanggal Hari Ini
+            var today = new Date();
+            var dd = String(today.getDate()).padStart(2, '0');
+            var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+            var yyyy = today.getFullYear();
+            today = dd + '/' + mm + '/' + yyyy;
+
+            // Membuat kerangka faktur menggunakan HTML
+            const printWindow = window.open('', '_blank');
+            let invoiceHTML = `
+                <html>
+                <head>
+                    <title>Invoice</title>
+                    <style>
+                        *{ font-size: 12px; }
+                        body { font-family: monospace, sans-serif; margin: 20px; 
+                         }
+                        table { width: 50%; border-collapse: collapse; }
+                        th, td { border: none #ccc; padding: 2px; text-align: left; }
+                        th { background-color: #f2f2f2; }
+                    </style>
+                </head>
+                <body>
+                    <center>
+                    <h4>RPL MART</h4>
+                    <p>Alamat Jl. Brigjend Hasan Basri No 4, <br>Telp 051104345, Pos 70234</p>
+            `;
+            invoiceHTML += `No Transaksi : `+ Date.now() +`<br>`;
+            invoiceHTML += `Tanggal/Waktu : `+ today +`<br>`;
+            invoiceHTML +=`
+                    ----------------------------------------
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th style="text-align:right">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            // Menampilkan list belanjaan kedalam faktur
+            barang.forEach(brg => {
+                invoiceHTML += `
+                    <tr>
+                        <td>${brg.nama} <br> ${brg.hargaItem} x ${brg.jumlah}</td>
+                        <td style="text-align:right">${brg.sub}</td>
+                    </tr>
+                `;
+            });    
+
+            invoiceHTML += `</tr>
+                    </tbody>
+                </table><br>
+                ----------------------------------------
+                `;
+
+            invoiceHTML += `<p>Total `+ grandTotal + `<p>`;
+            invoiceHTML += `<p>Dibayar  `+ membayar + `<p>`;
+            invoiceHTML += `<p>Kembalian `+ (membayar-grandTotal) + `<p>`;
+            invoiceHTML += `
+                    </center>
+                </body>
+                </html>
+            `;
+
+            // MENULISKAN KODE HTML KEDALAM SEBUAH DOKUMEN 
+            printWindow.document.write(invoiceHTML);
+            printWindow.document.close(); 
+            
+            // TERAKHIR DOKUMEN YANG TELAH DITULIS AKAN DICETAK
+            printWindow.onload = function() {
+                printWindow.print(); 
+                printWindow.close();  
+            };
+        }
+
+    </script>
+    <div class="container-fluid mt-3">
+        <div class="row">
+            <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header"><h2>Aplikasi Kasir</h2></div>
+                <div class="card-body">
+                        <label for="cari">Cari Item</label><br>
+                        <input id="nobatch" name="cari" type="text" class="form-control" oninput="cari_barang()" placeholder="NO Batch">
+                        <br>
+                        <label for="">Nama Item</label>
+                        <input type="text" class="form-control" id="nama_item">
+                        <label for="">Harga Item</label>
+                        <input type="text" class="form-control" id="harga_item">
+                        <label for="">Jumlah Pembelian</label>
+                        <input type="number" class="form-control" id="jumlah_pembelian" value=1> </p> 
+                        <button onclick="tambah_list()" class="btn btn-success w-100">Tambah</button>
+                        <button onclick="clear()" class="btn btn-secondary w-100 mt-2">Reset</button>
+                  
+                </div>
+            </div>
+                
+            </div>
+
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header"><h2>Keranjang Pembelian</h2></div>
+                    <div class="card-body">
+                        <table class="table table-bordered mt-3" id="myTable">
+                            <thead>
+                                <th>Nama Item</th>
+                                <th>Harga</th>
+                                <th>Jumlah Pembelian</th>
+                                <th>Subtotal</th>
+                            </thead>
+                            
+                        </table>
+                            <strong>
+                                <p class="text-end">Total Pembelian</p>
+                                <p class="text-end" id="total_pembelian">Rp. 0</p>
+                            </strong>
+                            <label for="membayar">Bayar</label>
+                            <input type="number" class="form-control" name="" id="membayar">
+                            <button class="btn btn-primary mt-4" onclick="print_faktur()">Cetak Faktur</button>
+                    </div>
+                </div>    
+            </div>
+        </div>
+    </div>
+</body>
+</html>
